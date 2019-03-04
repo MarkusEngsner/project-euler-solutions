@@ -14,32 +14,29 @@
 
 
 from time import time
+import cProfile
+from math import log, sqrt, ceil
 
-
-def isPower(n, base):
-    result = n / base
-    while result > 1:
-        result /= base
-    return result == 1
 
 
 def powerOf(n, baseDict):
     for base in baseDict:
         if base ** 2 > n:  # purely for performance
-            return n
-        if n % base == 0:  # purely for performance
-            if isPower(n, base):
-                return base
-    return n
+            return n, 1
+        if base ** (baseDict[base] + 1) == n:
+            return base, baseDict[base] + 1
+    return n, 1
 
 
 def buildBaseDict(lower, higher):
     ''' both limits are inclusive'''
     baseDict = {}
-    for i in range(lower, higher + 1):
-        base = powerOf(i, baseDict)
-        baseDict[base] = baseDict.get(base, 0) + 1
-    return baseDict
+    rootLimit = ceil(sqrt(higher))
+    for i in range(lower, rootLimit + 1):
+        base, exponent = powerOf(i, baseDict)
+        baseDict[base] = exponent
+    highestExp = int(log(higher, 2))    
+    return baseDict, highestExp
 
 
 def buildNewUniques(n, minExp, maxExp):
@@ -58,24 +55,39 @@ def buildNewUniques(n, minExp, maxExp):
     for i in range(2, n+1):
         compoundedDict[i] = uniqueDict[i] + compoundedDict[i-1]
     return compoundedDict
+    
 
-
-def uniqueCount(lower, higher):
-    baseDict = buildBaseDict(lower, higher)
-    highestExp = max(baseDict.values())
-    uniqueDict = buildNewUniques(highestExp, lower, higher)
+def getTotal(baseSet, uniqueDict, lower, higher):
+    countedNumbers = 0
     result = 0
-    for val in baseDict.values():
-        result += uniqueDict[val]
+    for x in baseSet:
+        highestExp = int(log(higher, x))
+        countedNumbers += highestExp
+        result += uniqueDict[highestExp]
+    totalNumbers = 1 + higher - lower
+    missingNumbers = totalNumbers - countedNumbers
+    result += missingNumbers * uniqueDict[1]
     return result
 
 
-start = time()
-low = 2
-high = 100
-answer = uniqueCount(low, high)
-end = time()
-print("Limit: {}".format(high))
-print("Answer: {}".format(answer))
-print("Took {} ms".format(round(10 ** 3 * (end - start))))
-# Takes about 0.29 ms on my machine (tested using timeit)
+def uniqueCount(lower, higher):
+    baseDict, highestExp = buildBaseDict(lower, higher)
+    uniqueDict = buildNewUniques(highestExp, lower, higher)
+    result = getTotal(baseDict, uniqueDict, lower, higher)
+    return result
+
+
+def runCode():
+    start = time()
+    low = 2
+    high = 1000000
+    answer = uniqueCount(low, high)
+    end = time()
+    print("Limit: {}".format(high))
+    print("Answer: {}".format(answer))
+    print("Took {} ms".format(round(10 ** 3 * (end - start))))
+
+cProfile.run("runCode()")
+#runCode()
+# Takes about 0.11 ms on my machine
+# And about 300 ms with high = 100000 (tested using timeit)
