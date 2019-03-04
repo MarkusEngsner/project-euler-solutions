@@ -39,22 +39,19 @@ def buildBaseDict(lower, higher):
     return baseDict, highestExp
 
 
-def buildNewUniques(n, minExp, maxExp):
+def buildNewUniques(n, lower, higher):
     ''' builds a dict with exponents as keys 
         and amount of new, unique, powers as values
         n: greatest multiple '''
-    uniqueDict = {i: 0 for i in range(1, n + 1)}
+    uniqueDict = {i: lower for i in range(1, n + 1)} 
+    # lower is used for lowerExp to yield the correct value for i = 1
     expSet = set()
     for i in range(1, n + 1):
-        for j in range(minExp, maxExp + 1):
-            exponent = j * i
-            if not exponent in expSet:
-                uniqueDict[i] += 1
-                expSet.add(exponent)
-    compoundedDict = {1: uniqueDict[1]}
-    for i in range(2, n+1):
-        compoundedDict[i] = uniqueDict[i] + compoundedDict[i-1]
-    return compoundedDict
+        lowerExp = int(uniqueDict[1] / i) # since exp = 1 means every
+        newExponents = {x*i for x in range(lowerExp, higher + 1)}
+        expSet.update(newExponents)
+        uniqueDict[i] = len(expSet)
+    return uniqueDict
     
 
 def getTotal(baseSet, uniqueDict, lower, higher):
@@ -77,17 +74,17 @@ def uniqueCount(lower, higher):
     return result
 
 
-def runCode():
+def runCode(limit):
     start = time()
     low = 2
-    high = 1000000
+    high = limit
     answer = uniqueCount(low, high)
     end = time()
     print("Limit: {}".format(high))
     print("Answer: {}".format(answer))
     print("Took {} ms".format(round(10 ** 3 * (end - start))))
 
-cProfile.run("runCode()")
-#runCode()
+#cProfile.run("runCode()")
+runCode(1000000)
 # Takes about 0.11 ms on my machine
 # And about 300 ms with high = 100000 (tested using timeit)
