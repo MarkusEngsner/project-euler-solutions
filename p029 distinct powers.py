@@ -14,9 +14,7 @@
 
 
 from time import time
-import cProfile
 from math import log, sqrt, ceil
-
 
 
 def powerOf(n, baseDict):
@@ -35,7 +33,7 @@ def buildBaseDict(lower, higher):
     for i in range(lower, rootLimit + 1):
         base, exponent = powerOf(i, baseDict)
         baseDict[base] = exponent
-    highestExp = int(log(higher, 2))    
+    highestExp = int(log(higher, 2))
     return baseDict, highestExp
 
 
@@ -43,16 +41,16 @@ def buildNewUniques(n, lower, higher):
     ''' builds a dict with exponents as keys 
         and amount of new, unique, powers as values
         n: greatest multiple '''
-    uniqueDict = {i: lower for i in range(1, n + 1)} 
+    uniqueDict = {i: lower for i in range(1, n + 1)}
     # lower is used for lowerExp to yield the correct value for i = 1
     expSet = set()
     for i in range(1, n + 1):
-        lowerExp = int(uniqueDict[1] / i) # since exp = 1 means every
+        lowerExp = int(uniqueDict[1] / i)  # since exp = 1 means every
         newExponents = {x*i for x in range(lowerExp, higher + 1)}
         expSet.update(newExponents)
         uniqueDict[i] = len(expSet)
     return uniqueDict
-    
+
 
 def getTotal(baseSet, uniqueDict, lower, higher):
     countedNumbers = 0
@@ -74,17 +72,15 @@ def uniqueCount(lower, higher):
     return result
 
 
-def runCode(limit):
-    start = time()
-    low = 2
-    high = limit
-    answer = uniqueCount(low, high)
-    end = time()
-    print("Limit: {}".format(high))
-    print("Answer: {}".format(answer))
-    print("Took {} ms".format(round(10 ** 3 * (end - start))))
+start = time()
+low = 2
+high = 100
+answer = uniqueCount(low, high)
+end = time()
+print("Limit: {}".format(high))
+print("Answer: {}".format(answer))
+print("Took {} ms".format(round(10 ** 3 * (end - start))))
 
-#cProfile.run("runCode()")
-runCode(1000000)
-# Takes about 0.11 ms on my machine
-# And about 300 ms with high = 100000 (tested using timeit)
+# Takes about 0.05 ms on my machine with high = 10 ** 2
+# And about 200 ms with high = 10 ** 5,
+# 2600 ms with high = 10 ** 6           (tested using timeit)
